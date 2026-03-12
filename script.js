@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toastMessage = document.getElementById('toastMessage');
 
     // --- State Management ---
-    const STORAGE_KEY = 'opr_matches';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyNoh1WSrgfLZs9bwCOe4eWDVuc8MJS6j_91Ik_vAE_llY-NFUHeZLiAxudTOLePLJS/exec';
     let matches = [];
     let editingMatchId = null;
 
@@ -45,25 +45,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Data Management & Rendering ---
     
-    const loadMatches = () => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            try {
-                matches = JSON.parse(saved);
-                // Sort chronologically (newest first)
-                matches.sort((a, b) => new Date(b.date) - new Date(a.date));
-            } catch (e) {
-                console.error("Failed to parse matches from local storage");
-                matches = [];
-            }
+    const loadMatches = async () => {
+        // Show loading state in feed
+        emptyState.style.display = 'block';
+        emptyState.innerHTML = '<div class="empty-icon"><i class="fa-solid fa-spinner fa-spin"></i></div><h2>Loading Journals...</h2><p>Connecting to database.</p>';
+
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error("Network response was not ok");
+            
+            const data = await response.json();
+            matches = Array.isArray(data) ? data : [];
+            
+            // Sort chronologically (newest first)
+            matches.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderJournal();
+        } catch (error) {
+            console.error("Failed to load matches from API:", error);
+            emptyState.innerHTML = '<div class="empty-icon" style="color:var(--brand-primary)"><i class="fa-solid fa-triangle-exclamation"></i></div><h2>Failed to load</h2><p>Could not connect to the database. Trying locally.</p>';
         }
-        renderJournal();
     };
 
-    const saveMatches = () => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
-        renderJournal();
-    };
+    // Replace the old saveMatches logic that wrote to local storage.
+    // Syncing to the API now happens upon form submission directly via fetch.
 
     const renderJournal = () => {
         // Clear current feed except empty state
@@ -72,6 +76,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (matches.length === 0) {
             emptyState.style.display = 'block';
+            emptyState.innerHTML = `
+                <div class="empty-icon">
+                    <i class="fa-solid fa-ghost"></i>
+                </div>
+                <h2>No matches recorded yet</h2>
+                <p>Start your journal by logging your first OnePageRules game!</p>
+                <button class="btn-primary mt-3" onclick="document.getElementById('addMatchBtn').click()">
+                    Log First Match
+                </button>`;
             updateStats();
             return;
         }
@@ -198,10 +211,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Form Submission ---
     
-    addMatchForm.addEventListener('submit', (e) => {
+    addMatchForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        const submitBtn = addMatchForm.querySelector('button[type="submit"]');
+        const originalBtnHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+
         const matchData = {
+            id: editingMatchId ? editingMatchId : Date.now().toString(),
             date: document.getElementById('matchDate').value,
             location: document.getElementById('matchLocation').value,
             opponent: document.getElementById('opponentName').value,
@@ -211,24 +230,43 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: document.getElementById('matchNotes').value
         };
 
-        if (editingMatchId) {
-            const index = matches.findIndex(m => m.id === editingMatchId);
-            if (index !== -1) {
-                matches[index] = { ...matches[index], ...matchData };
-                showToast("Match updated in Journal!");
-            }
-            editingMatchId = null;
-        } else {
-            const newMatch = {
-                id: Date.now().toString(),
-                ...matchData
-            };
-            matches.push(newMatch);
-            showToast("Match saved to Journal!");
-        }
+        try {
+            // Post data to API
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                // Avoid preflight CORS by sending plain text
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(matchData)
+            });
 
-        saveMatches();
-        closeModal();
+            const result = await response.json();
+
+            if (result.result === 'success') {
+                if (editingMatchId) {
+                    const index = matches.findIndex(m => m.id === editingMatchId);
+                    if (index !== -1) {
+                        matches[index] = { ...matches[index], ...matchData };
+                        showToast("Match updated safely!");
+                    }
+                } else {
+                    matches.push(matchData);
+                    showToast("Match saved to Google Sheets!");
+                }
+                
+                // Sort chronologically handles new pushes natively prior to rendering
+                matches.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderJournal();
+                closeModal();
+            } else {
+                throw new Error("Failed to save to database");
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("Error saving match. Try again.");
+        } finally {
+            submitBtn.innerHTML = originalBtnHtml;
+            submitBtn.disabled = false;
+        }
     });
 
 
@@ -366,15 +404,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 newMatches.push(matchObj);
             }
 
-            if (newMatches.length > 0) {
-                if (confirm(`Found ${newMatches.length} matches. Replace current journal entirely? (Cancel to append instead)`)) {
-                    matches = newMatches;
-                } else {
-                    matches = [...matches, ...newMatches];
+                // Note: The newMatches array is currently kept local if user imports CSV. 
+                // To safely prevent overwriting entire databases, CSV appends are not forwarded to sheets automatically
+                // without additional logic to avoid quota limits on API Posts.
+                if (newMatches.length > 0) {
+                    if (confirm(`Found ${newMatches.length} matches. Replace current local view entirely? Note: To sync these imports to Google Sheets, manual API requests per row are needed. (Not currently enabled)`)) {
+                        matches = newMatches;
+                    } else {
+                        matches = [...matches, ...newMatches];
+                    }
+                    matches.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    renderJournal();
+                    showToast("CSV Imported Successfully!");
                 }
-                saveMatches();
-                showToast("CSV Imported Successfully!");
-            }
         };
         reader.readAsText(file);
         
