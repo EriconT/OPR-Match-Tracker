@@ -27,7 +27,29 @@
         <header class="app-header glass-panel">
             <div class="brand">
                 <div class="logo">
-                    <i class="fa-solid fa-dice-d20"></i>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1.8em" height="1.8em">
+                        <defs>
+                            <mask id="bolter-mask">
+                                <rect width="100" height="100" fill="white" />
+                                <path d="M 35,35 H 55 L 56,40 H 34 Z" fill="black" />
+                                <rect x="25" y="44" width="28" height="3" fill="black" />
+                                <rect x="60" y="48" width="8" height="4" fill="black" rx="1" />
+                                <polygon points="49,65 53,65 51,80 47,80" fill="black" />
+                                <circle cx="39" cy="53" r="2" fill="black" />
+                            </mask>
+                        </defs>
+                        <g fill="currentColor" mask="url(#bolter-mask)">
+                            <polygon points="5,45 20,45 20,58 10,58 5,52" />
+                            <polygon points="22,60 30,60 26,80 18,80" />
+                            <polygon points="45,60 58,60 54,85 41,85" />
+                            <path d="M 30,60 H 42 V 68 H 34 V 63 H 30 Z" />
+                            <rect x="20" y="40" width="55" height="20" rx="2" />
+                            <polygon points="28,32 62,32 66,40 24,40" />
+                            <rect x="75" y="46" width="18" height="6" />
+                            <rect x="85" y="43" width="8" height="12" rx="1" />
+                            <polygon points="77,46 81,46 81,41 77,44" />
+                        </g>
+                    </svg>
                 </div>
                 <div>
                     <h1>OPR Journal</h1>
