@@ -260,6 +260,7 @@ h1, h2, h3, h4, h5, h6, .brand-text, .btn-primary, .btn-secondary, .stat-value {
     line-height: 1.2;
     background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -403,11 +404,36 @@ h1, h2, h3, h4, h5, h6, .brand-text, .btn-primary, .btn-secondary, .stat-value {
     opacity: 1;
 }
 
+.edit-entry-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+    z-index: 10;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+}
+
+.entry-card:hover .edit-entry-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.edit-entry-btn:hover {
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    background: var(--bg-surface-hover);
+}
+
 .entry-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 1rem;
+    padding-right: 2.5rem;
 }
 
 .entry-date {

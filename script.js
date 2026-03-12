@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = document.getElementById('closeModalBtn');
     const cancelModalBtn = document.getElementById('cancelModalBtn');
     const addMatchForm = document.getElementById('addMatchForm');
+    const modalTitle = document.querySelector('#addMatchModal .modal-header h2');
     
     // Content Elements
     const journalFeed = document.getElementById('journalFeed');
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State Management ---
     const STORAGE_KEY = 'opr_matches';
     let matches = [];
+    let editingMatchId = null;
 
     // --- Theme Handling ---
     const currentTheme = localStorage.getItem('opr_theme') || 'dark';
@@ -97,6 +99,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="timeline-dot"></div>
                 </div>
                 <div class="entry-card">
+                    <button class="icon-btn edit-entry-btn" aria-label="Edit Match" title="Edit Match">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
                     <div class="entry-header">
                         <div class="entry-date"><i class="fa-regular fa-calendar-days"></i> ${displayDate}</div>
                         <div class="entry-location"><i class="fa-solid fa-location-arrow"></i> ${match.location}</div>
@@ -117,6 +122,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${match.notes ? `<div class="entry-notes">${match.notes.replace(/\n/g, '<br>')}</div>` : ''}
                 </div>
             `;
+            
+            const editBtn = entry.querySelector('.edit-entry-btn');
+            if (editBtn) {
+                editBtn.addEventListener('click', () => {
+                    openModal(match);
+                });
+            }
+
             journalFeed.appendChild(entry);
         });
 
@@ -141,18 +154,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Modal Handling ---
     
-    const openModal = () => {
+    const openModal = (matchToEdit = null) => {
         addMatchModal.classList.add('active');
-        // Set today as default date
-        document.getElementById('matchDate').valueAsDate = new Date();
+        if (matchToEdit && matchToEdit.id) {
+            editingMatchId = matchToEdit.id;
+            modalTitle.textContent = "Edit Match";
+            document.getElementById('matchDate').value = matchToEdit.date || '';
+            document.getElementById('matchLocation').value = matchToEdit.location || '';
+            document.getElementById('opponentName').value = matchToEdit.opponent || '';
+            document.getElementById('myFaction').value = matchToEdit.myFaction || '';
+            document.getElementById('oppFaction').value = matchToEdit.opponentFaction || '';
+            document.getElementById('matchWinner').value = matchToEdit.winner || '';
+            document.getElementById('matchNotes').value = matchToEdit.notes || '';
+        } else {
+            editingMatchId = null;
+            modalTitle.textContent = "Log a New Match";
+            document.getElementById('matchDate').valueAsDate = new Date();
+        }
     };
     
     const closeModal = () => {
         addMatchModal.classList.remove('active');
         addMatchForm.reset();
+        editingMatchId = null;
     };
 
-    addMatchBtn.addEventListener('click', openModal);
+    addMatchBtn.addEventListener('click', () => openModal(null));
     closeModalBtn.addEventListener('click', closeModal);
     cancelModalBtn.addEventListener('click', closeModal);
 
@@ -174,8 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addMatchForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        const newMatch = {
-            id: Date.now().toString(),
+        const matchData = {
             date: document.getElementById('matchDate').value,
             location: document.getElementById('matchLocation').value,
             opponent: document.getElementById('opponentName').value,
@@ -185,10 +211,24 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: document.getElementById('matchNotes').value
         };
 
-        matches.push(newMatch);
+        if (editingMatchId) {
+            const index = matches.findIndex(m => m.id === editingMatchId);
+            if (index !== -1) {
+                matches[index] = { ...matches[index], ...matchData };
+                showToast("Match updated in Journal!");
+            }
+            editingMatchId = null;
+        } else {
+            const newMatch = {
+                id: Date.now().toString(),
+                ...matchData
+            };
+            matches.push(newMatch);
+            showToast("Match saved to Journal!");
+        }
+
         saveMatches();
         closeModal();
-        showToast("Match saved to Journal!");
     });
 
 
