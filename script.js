@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addMatchModal = document.getElementById('addMatchModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const cancelModalBtn = document.getElementById('cancelModalBtn');
+    const deleteMatchBtn = document.getElementById('deleteMatchBtn');
     const addMatchForm = document.getElementById('addMatchForm');
     const modalTitle = document.querySelector('#addMatchModal .modal-header h2');
     
@@ -179,10 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('oppFaction').value = matchToEdit.opponentFaction || '';
             document.getElementById('matchWinner').value = matchToEdit.winner || '';
             document.getElementById('matchNotes').value = matchToEdit.notes || '';
+            deleteMatchBtn.style.display = 'inline-flex';
         } else {
             editingMatchId = null;
             modalTitle.textContent = "Log a New Match";
             document.getElementById('matchDate').valueAsDate = new Date();
+            deleteMatchBtn.style.display = 'none';
         }
     };
     
@@ -208,6 +211,45 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
     };
+
+    // Delete Match Logic
+    deleteMatchBtn.addEventListener('click', async () => {
+        if (!editingMatchId) return;
+        
+        if (confirm("Are you sure you want to delete this match? This action cannot be undone.")) {
+            const submitBtn = addMatchForm.querySelector('button[type="submit"]');
+            const originalBtnHtml = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+            submitBtn.disabled = true;
+            deleteMatchBtn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'delete', id: editingMatchId })
+                });
+
+                const result = await response.json();
+                
+                if (result.result === 'success') {
+                    matches = matches.filter(m => m.id !== editingMatchId);
+                    showToast("Match deleted safely!");
+                    renderJournal();
+                    closeModal();
+                } else {
+                    throw new Error("Failed to delete from database");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast("Error deleting match. Try again.");
+            } finally {
+                submitBtn.innerHTML = originalBtnHtml;
+                submitBtn.disabled = false;
+                deleteMatchBtn.disabled = false;
+            }
+        }
+    });
 
     // --- Form Submission ---
     
@@ -370,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             const csvText = event.target.result;
             const parsedData = parseCSV(csvText);
             
@@ -404,19 +446,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 newMatches.push(matchObj);
             }
 
-                // Note: The newMatches array is currently kept local if user imports CSV. 
-                // To safely prevent overwriting entire databases, CSV appends are not forwarded to sheets automatically
-                // without additional logic to avoid quota limits on API Posts.
-                if (newMatches.length > 0) {
-                    if (confirm(`Found ${newMatches.length} matches. Replace current local view entirely? Note: To sync these imports to Google Sheets, manual API requests per row are needed. (Not currently enabled)`)) {
-                        matches = newMatches;
-                    } else {
-                        matches = [...matches, ...newMatches];
-                    }
-                    matches.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    renderJournal();
-                    showToast("CSV Imported Successfully!");
+            if (newMatches.length > 0) {
+                if (!confirm(`Found ${newMatches.length} matches. Would you like to sync these imports to your Google Sheets database? This may take a moment depending on the number of matches.`)) {
+                    return;
                 }
+
+                showToast(`Syncing ${newMatches.length} matches to Database...`);
+                let successCount = 0;
+
+                // Sync sequentially to avoid hitting Apps Script rate limits too hard
+                for (const newMatch of newMatches) {
+                    try {
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(newMatch)
+                        });
+                        const result = await response.json();
+                        if (result.result === 'success') {
+                            successCount++;
+                        }
+                    } catch (error) {
+                        console.error("Failed to sync match", newMatch, error);
+                    }
+                }
+
+                showToast(`Import Complete: ${successCount} matches saved to Google Sheets.`);
+                // Reload feed to ensure view matches database truth
+                loadMatches();
+            }
         };
         reader.readAsText(file);
         
