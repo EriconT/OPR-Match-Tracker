@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Stats Elements
     const totalGamesStat = document.getElementById('totalGamesStat');
+    const gamesWonStat = document.getElementById('gamesWonStat');
     const locationsStat = document.getElementById('locationsStat');
     const opponentsStat = document.getElementById('opponentsStat');
 
@@ -88,6 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayDate = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
             } catch(e) {}
 
+            let winnerHtmlMe = match.winner === 'me' ? ' <i class="fa-solid fa-crown" style="color: #fbbf24;" title="Winner"></i>' : '';
+            let winnerHtmlOpp = match.winner === 'opponent' ? ' <i class="fa-solid fa-crown" style="color: #fbbf24;" title="Winner"></i>' : '';
+
             entry.innerHTML = `
                 <div class="entry-timeline">
                     <div class="timeline-dot"></div>
@@ -100,12 +104,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     <div class="entry-matchup">
                         <div class="faction-side">
-                            <span class="player-name">Me</span>
+                            <span class="player-name">Me${winnerHtmlMe}</span>
                             <span class="faction-name text-primary">${match.myFaction}</span>
                         </div>
                         <div class="vs-circle">VS</div>
                         <div class="faction-side">
-                            <span class="player-name">${match.opponent}</span>
+                            <span class="player-name">${match.opponent}${winnerHtmlOpp}</span>
                             <span class="faction-name text-secondary">${match.opponentFaction}</span>
                         </div>
                     </div>
@@ -121,6 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateStats = () => {
         totalGamesStat.textContent = matches.length;
+        
+        // Count games won
+        const gamesWon = matches.filter(m => m.winner === 'me').length;
+        if (gamesWonStat) gamesWonStat.textContent = gamesWon;
         
         // Count unique locations
         const uniqueLocations = new Set(matches.map(m => m.location.trim().toLowerCase())).size;
@@ -173,6 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             opponent: document.getElementById('opponentName').value,
             myFaction: document.getElementById('myFaction').value,
             opponentFaction: document.getElementById('oppFaction').value,
+            winner: document.getElementById('matchWinner').value,
             notes: document.getElementById('matchNotes').value
         };
 
@@ -190,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (array.length === 0) return '';
         
         // Define headers matching our data structure
-        const headers = ['date', 'location', 'opponent', 'myFaction', 'opponentFaction', 'notes'];
+        const headers = ['date', 'location', 'opponent', 'myFaction', 'opponentFaction', 'winner', 'notes'];
         
         let str = headers.join(',') + '\r\n';
 
@@ -303,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const matchObj = { id: Date.now().toString() + i };
                 
                 // Map columns based on our expected headers array from Export logic
-                const expectedHeaders = ['date', 'location', 'opponent', 'myFaction', 'opponentFaction', 'notes'];
+                const expectedHeaders = ['date', 'location', 'opponent', 'myFaction', 'opponentFaction', 'winner', 'notes'];
                 
                 // Attempt to map by index if header matches
                 expectedHeaders.forEach((expectedKey, idx) => {
