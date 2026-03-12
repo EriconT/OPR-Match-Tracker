@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPR Match Tracker | Pro Analytics</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="brand">
+                <div class="logo">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <h2>OPR Tracker</h2>
+            </div>
+            
+            <ul class="nav-links">
+                <li class="active"><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
+                <li><a href="#"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
+                <li><a href="#"><i class="fa-solid fa-users"></i> Teams</a></li>
+                <li><a href="#"><i class="fa-solid fa-chart-pie"></i> Analytics</a></li>
+            </ul>
+
+            <div class="nav-bottom">
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
+                    <li><a href="#"><i class="fa-regular fa-circle-question"></i> Help</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content vertically split into header and content area -->
+        <main class="main-content">
+            <!-- Header section -->
+            <header class="top-nav">
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" placeholder="Search teams, matches, or events..." aria-label="Search">
+                </div>
+                <div class="user-actions">
+                    <button class="icon-btn notif-btn">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <div class="user-profile">
+                        <img src="https://ui-avatars.com/api/?name=Enrico+T&background=3B82F6&color=fff&rounded=true" alt="User Avatar" class="avatar">
+                        <span class="user-name">Enrico T.</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <section class="dashboard">
+                <div class="dashboard-header">
+                    <div>
+                        <h1>Season Overview</h1>
+                        <p class="subtitle">Your match analytics and OPR performance</p>
+                    </div>
+                    <button class="btn-primary" id="addMatchBtn">
+                        <i class="fa-solid fa-plus"></i> New Match
+                    </button>
+                </div>
+
+                <!-- KPI Cards Section -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel" style="--animation-order: 1">
+                        <div class="stat-icon-wrapper" style="color: var(--primary);">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Average OPR</h3>
+                            <p class="stat-value">84.2</p>
+                            <span class="stat-trend positive"><i class="fa-solid fa-arrow-up"></i> 12% vs last event</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel" style="--animation-order: 2">
+                        <div class="stat-icon-wrapper" style="color: var(--secondary);">
+                            <i class="fa-solid fa-ranking-star"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Matches Played</h3>
+                            <p class="stat-value">124</p>
+                            <span class="stat-trend neutral"><i class="fa-solid fa-minus"></i> 5 this week</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel" style="--animation-order: 3">
+                        <div class="stat-icon-wrapper" style="color: var(--success);">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Win Rate</h3>
+                            <p class="stat-value">68%</p>
+                            <span class="stat-trend positive"><i class="fa-solid fa-arrow-up"></i> 4% vs last event</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card glass-panel" style="--animation-order: 4">
+                        <div class="stat-icon-wrapper" style="color: var(--warning);">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Highest Score</h3>
+                            <p class="stat-value">215</p>
+                            <span class="stat-trend positive"><i class="fa-solid fa-medal"></i> Record Broken</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Data Tables/Charts -->
+                <div class="content-grid">
+                    <div class="recent-matches glass-panel" style="--animation-order: 5">
+                        <div class="panel-header">
+                            <h2>Recent Matches</h2>
+                            <button class="btn-text">View All</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Match ID</th>
+                                        <th>Tournament</th>
+                                        <th>Alliance</th>
+                                        <th>Score</th>
+                                        <th>OPR Contribution</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="matchesTableBody">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Match Modal (Hidden by default) -->
+    <div class="modal-overlay" id="addMatchModal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Record New Match</h2>
+                <button class="icon-btn" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="addMatchForm">
+                <div class="form-group">
+                    <label for="matchTournament">Tournament</label>
+                    <input type="text" id="matchTournament" placeholder="e.g. Regional Championship" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="allianceColor">Alliance Color</label>
+                        <select id="allianceColor" required>
+                            <option value="Blue">Blue</option>
+                            <option value="Red">Red</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="matchScore">Final Score</label>
+                        <input type="number" id="matchScore" placeholder="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="oprContribution">Estimated OPR Contribution</label>
+                    <input type="number" step="0.1" id="oprContribution" placeholder="0.0" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Result</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
