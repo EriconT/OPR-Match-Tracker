@@ -3,146 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPR Match Tracker | Pro Analytics</title>
-    <!-- Google Fonts: Outfit -->
+    <title>OPR Match Journal</title>
+    <!-- Google Fonts: Outfit for headers, Inter for text -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-theme="dark">
+    <!-- Background Elements -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
     <div class="app-container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+        <!-- Header -->
+        <header class="app-header glass-panel">
             <div class="brand">
                 <div class="logo">
-                    <i class="fa-solid fa-chart-line"></i>
+                    <i class="fa-solid fa-dice-d20"></i>
                 </div>
-                <h2>OPR Tracker</h2>
+                <div>
+                    <h1>OPR Journal</h1>
+                    <span class="subtitle">Your Casual Game Tracker</span>
+                </div>
             </div>
             
-            <ul class="nav-links">
-                <li class="active"><a href="#"><i class="fa-solid fa-house"></i> Dashboard</a></li>
-                <li><a href="#"><i class="fa-solid fa-trophy"></i> Tournaments</a></li>
-                <li><a href="#"><i class="fa-solid fa-users"></i> Teams</a></li>
-                <li><a href="#"><i class="fa-solid fa-chart-pie"></i> Analytics</a></li>
-            </ul>
+            <div class="header-actions">
+                <!-- Theme Toggle -->
+                <button class="icon-btn theme-toggle" id="themeToggleBtn" aria-label="Toggle Dark/Light Mode" title="Toggle Theme">
+                    <i class="fa-solid fa-moon dark-icon"></i>
+                    <i class="fa-solid fa-sun light-icon"></i>
+                </button>
+                
+                <div class="action-divider"></div>
 
-            <div class="nav-bottom">
-                <ul>
-                    <li><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
-                    <li><a href="#"><i class="fa-regular fa-circle-question"></i> Help</a></li>
-                </ul>
+                <!-- Export/Import Actions -->
+                <button class="btn-secondary" id="exportBtn" title="Export matches to CSV">
+                    <i class="fa-solid fa-file-export"></i> <span class="btn-text-hide">Export CSV</span>
+                </button>
+                <button class="btn-secondary" id="importBtn" title="Import matches from CSV">
+                    <i class="fa-solid fa-file-import"></i> <span class="btn-text-hide">Import CSV</span>
+                </button>
+                <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+
+                <!-- Add Match Button -->
+                <button class="btn-primary" id="addMatchBtn">
+                    <i class="fa-solid fa-plus"></i> <span>Log Match</span>
+                </button>
             </div>
-        </nav>
+        </header>
 
-        <!-- Main Content vertically split into header and content area -->
+        <!-- Main Content -->
         <main class="main-content">
-            <!-- Header section -->
-            <header class="top-nav">
-                <div class="search-bar">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" placeholder="Search teams, matches, or events..." aria-label="Search">
+            <!-- Stats Summary -->
+            <div class="stats-ribbon">
+                <div class="stat-pill">
+                    <i class="fa-solid fa-book-open text-primary"></i>
+                    <span class="stat-label">Total Games</span>
+                    <strong class="stat-value" id="totalGamesStat">0</strong>
                 </div>
-                <div class="user-actions">
-                    <button class="icon-btn notif-btn">
-                        <i class="fa-regular fa-bell"></i>
-                        <span class="badge">3</span>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-location-dot text-secondary"></i>
+                    <span class="stat-label">Locations</span>
+                    <strong class="stat-value" id="locationsStat">0</strong>
+                </div>
+                <div class="stat-pill">
+                    <i class="fa-solid fa-user-group text-accent"></i>
+                    <span class="stat-label">Opponents</span>
+                    <strong class="stat-value" id="opponentsStat">0</strong>
+                </div>
+            </div>
+
+            <!-- Journal Entries -->
+            <section class="journal-feed" id="journalFeed">
+                <!-- Entries populated by JS -->
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">
+                        <i class="fa-solid fa-ghost"></i>
+                    </div>
+                    <h2>No matches recorded yet</h2>
+                    <p>Start your journal by logging your first OnePageRules game!</p>
+                    <button class="btn-primary mt-3" onclick="document.getElementById('addMatchBtn').click()">
+                        Log First Match
                     </button>
-                    <div class="user-profile">
-                        <img src="https://ui-avatars.com/api/?name=Enrico+T&background=3B82F6&color=fff&rounded=true" alt="User Avatar" class="avatar">
-                        <span class="user-name">Enrico T.</span>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Dashboard Content -->
-            <section class="dashboard">
-                <div class="dashboard-header">
-                    <div>
-                        <h1>Season Overview</h1>
-                        <p class="subtitle">Your match analytics and OPR performance</p>
-                    </div>
-                    <button class="btn-primary" id="addMatchBtn">
-                        <i class="fa-solid fa-plus"></i> New Match
-                    </button>
-                </div>
-
-                <!-- KPI Cards Section -->
-                <div class="stats-grid">
-                    <div class="stat-card glass-panel" style="--animation-order: 1">
-                        <div class="stat-icon-wrapper" style="color: var(--primary);">
-                            <i class="fa-solid fa-bolt"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3>Average OPR</h3>
-                            <p class="stat-value">84.2</p>
-                            <span class="stat-trend positive"><i class="fa-solid fa-arrow-up"></i> 12% vs last event</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card glass-panel" style="--animation-order: 2">
-                        <div class="stat-icon-wrapper" style="color: var(--secondary);">
-                            <i class="fa-solid fa-ranking-star"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3>Matches Played</h3>
-                            <p class="stat-value">124</p>
-                            <span class="stat-trend neutral"><i class="fa-solid fa-minus"></i> 5 this week</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card glass-panel" style="--animation-order: 3">
-                        <div class="stat-icon-wrapper" style="color: var(--success);">
-                            <i class="fa-solid fa-crown"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3>Win Rate</h3>
-                            <p class="stat-value">68%</p>
-                            <span class="stat-trend positive"><i class="fa-solid fa-arrow-up"></i> 4% vs last event</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card glass-panel" style="--animation-order: 4">
-                        <div class="stat-icon-wrapper" style="color: var(--warning);">
-                            <i class="fa-solid fa-fire"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3>Highest Score</h3>
-                            <p class="stat-value">215</p>
-                            <span class="stat-trend positive"><i class="fa-solid fa-medal"></i> Record Broken</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Main Data Tables/Charts -->
-                <div class="content-grid">
-                    <div class="recent-matches glass-panel" style="--animation-order: 5">
-                        <div class="panel-header">
-                            <h2>Recent Matches</h2>
-                            <button class="btn-text">View All</button>
-                        </div>
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Match ID</th>
-                                        <th>Tournament</th>
-                                        <th>Alliance</th>
-                                        <th>Score</th>
-                                        <th>OPR Contribution</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="matchesTableBody">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </section>
         </main>
@@ -150,39 +96,67 @@
 
     <!-- Add Match Modal (Hidden by default) -->
     <div class="modal-overlay" id="addMatchModal">
-        <div class="modal-content glass-panel">
+        <div class="modal-content glass-panel bounce-in">
             <div class="modal-header">
-                <h2>Record New Match</h2>
-                <button class="icon-btn" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+                <h2>Log a New Match</h2>
+                <button class="icon-btn close-btn" id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
             </div>
+            
             <form id="addMatchForm">
-                <div class="form-group">
-                    <label for="matchTournament">Tournament</label>
-                    <input type="text" id="matchTournament" placeholder="e.g. Regional Championship" required>
-                </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="allianceColor">Alliance Color</label>
-                        <select id="allianceColor" required>
-                            <option value="Blue">Blue</option>
-                            <option value="Red">Red</option>
-                        </select>
+                        <label for="matchDate"><i class="fa-regular fa-calendar"></i> Date</label>
+                        <input type="date" id="matchDate" required>
                     </div>
                     <div class="form-group">
-                        <label for="matchScore">Final Score</label>
-                        <input type="number" id="matchScore" placeholder="0" required>
+                        <label for="matchLocation"><i class="fa-solid fa-store"></i> Location / Store</label>
+                        <input type="text" id="matchLocation" placeholder="e.g. Local Game Store" required>
                     </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="oprContribution">Estimated OPR Contribution</label>
-                    <input type="number" step="0.1" id="oprContribution" placeholder="0.0" required>
+                    <label for="opponentName"><i class="fa-solid fa-user-ninja"></i> Opponent Name</label>
+                    <input type="text" id="opponentName" placeholder="Who did you play against?" required>
                 </div>
+
+                <div class="battlefield-divider">
+                    <span>The Matchup</span>
+                </div>
+
+                <div class="form-row matchup-row">
+                    <div class="form-group my-faction-group">
+                        <label for="myFaction">My Faction</label>
+                        <input type="text" id="myFaction" placeholder="Your Army" required>
+                    </div>
+                    
+                    <div class="vs-badge">VS</div>
+                    
+                    <div class="form-group opp-faction-group">
+                        <label for="oppFaction">Opponent's Faction</label>
+                        <input type="text" id="oppFaction" placeholder="Their Army" required>
+                    </div>
+                </div>
+
+                <!-- Optional Notes -->
+                <div class="form-group mt-3">
+                    <label for="matchNotes"><i class="fa-regular fa-clipboard"></i> Notes / Highlights (Optional)</label>
+                    <textarea id="matchNotes" rows="3" placeholder="Epic moments, funny rolls, or final thoughts..."></textarea>
+                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" id="cancelModalBtn">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Result</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fa-solid fa-check"></i> Save to Journal
+                    </button>
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="notificationToast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastMessage">Match saved successfully!</span>
     </div>
 
     <script src="script.js"></script>
