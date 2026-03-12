@@ -115,13 +115,15 @@
                     </div>
                     <div class="form-group">
                         <label for="matchLocation"><i class="fa-solid fa-store"></i> Location / Store</label>
-                        <input type="text" id="matchLocation" placeholder="e.g. Local Game Store" required>
+                        <input type="text" id="matchLocation" list="locationsList" placeholder="e.g. Local Game Store" required>
+                        <datalist id="locationsList"></datalist>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="opponentName"><i class="fa-solid fa-user-ninja"></i> Opponent Name</label>
-                    <input type="text" id="opponentName" placeholder="Who did you play against?" required>
+                    <input type="text" id="opponentName" list="opponentsList" placeholder="Who did you play against?" required>
+                    <datalist id="opponentsList"></datalist>
                 </div>
 
                 <div class="battlefield-divider">
@@ -131,14 +133,16 @@
                 <div class="form-row matchup-row">
                     <div class="form-group my-faction-group">
                         <label for="myFaction">My Faction</label>
-                        <input type="text" id="myFaction" placeholder="Your Army" required>
+                        <input type="text" id="myFaction" list="myFactionsList" placeholder="Your Army" required>
+                        <datalist id="myFactionsList"></datalist>
                     </div>
                     
                     <div class="vs-badge">VS</div>
                     
                     <div class="form-group opp-faction-group">
                         <label for="oppFaction">Opponent's Faction</label>
-                        <input type="text" id="oppFaction" placeholder="Their Army" required>
+                        <input type="text" id="oppFaction" list="oppFactionsList" placeholder="Their Army" required>
+                        <datalist id="oppFactionsList"></datalist>
                     </div>
                 </div>
 

@@ -6,13 +6,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const csvFileInput = document.getElementById('csvFileInput');
     const addMatchBtn = document.getElementById('addMatchBtn');
     
-    // Modal Elements
     const addMatchModal = document.getElementById('addMatchModal');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const cancelModalBtn = document.getElementById('cancelModalBtn');
     const deleteMatchBtn = document.getElementById('deleteMatchBtn');
     const addMatchForm = document.getElementById('addMatchForm');
     const modalTitle = document.querySelector('#addMatchModal .modal-header h2');
+    
+    // Autocomplete Datalists
+    const locationsList = document.getElementById('locationsList');
+    const opponentsList = document.getElementById('opponentsList');
+    const myFactionsList = document.getElementById('myFactionsList');
+    const oppFactionsList = document.getElementById('oppFactionsList');
     
     // Content Elements
     const journalFeed = document.getElementById('journalFeed');
@@ -157,13 +162,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const gamesWon = matches.filter(m => m.winner === 'me').length;
         if (gamesWonStat) gamesWonStat.textContent = gamesWon;
         
-        // Count unique locations
-        const uniqueLocations = new Set(matches.map(m => m.location.trim().toLowerCase())).size;
-        locationsStat.textContent = uniqueLocations;
+        // Count unique locations & Update Datalist
+        const uniqueLocations = [...new Set(matches.map(m => m.location.trim()).filter(Boolean))];
+        locationsStat.textContent = uniqueLocations.length;
+        locationsList.innerHTML = uniqueLocations.map(loc => `<option value="${loc}">`).join('');
 
-        // Count unique opponents
-        const uniqueOpponents = new Set(matches.map(m => m.opponent.trim().toLowerCase())).size;
-        opponentsStat.textContent = uniqueOpponents;
+        // Count unique opponents & Update Datalist
+        const uniqueOpponents = [...new Set(matches.map(m => m.opponent.trim()).filter(Boolean))];
+        opponentsStat.textContent = uniqueOpponents.length;
+        opponentsList.innerHTML = uniqueOpponents.map(opp => `<option value="${opp}">`).join('');
+        
+        // Update Faction Datalists (Not counted in stats visually, but useful for autocomplete)
+        const uniqueMyFactions = [...new Set(matches.map(m => m.myFaction.trim()).filter(Boolean))];
+        myFactionsList.innerHTML = uniqueMyFactions.map(fac => `<option value="${fac}">`).join('');
+        
+        const uniqueOppFactions = [...new Set(matches.map(m => m.opponentFaction.trim()).filter(Boolean))];
+        oppFactionsList.innerHTML = uniqueOppFactions.map(fac => `<option value="${fac}">`).join('');
     };
 
     // --- Modal Handling ---
